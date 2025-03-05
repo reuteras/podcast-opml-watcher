@@ -1,0 +1,14 @@
+{
+  "check_interval": 3600,
+  "output_root": "Podcasts",
+  "state_file": "podcast_watcher_state.json",
+  "max_concurrent_downloads": 2,
+  "podcast2md_path": "podcast2md",
+  "podcast2md_model": "base",
+  "apply_formatting": true,
+  "create_links": true,
+  "create_refs": true,
+  "max_retry_attempts": 3,
+  "retry_delay": 300,
+  "vault_path": null
+}
