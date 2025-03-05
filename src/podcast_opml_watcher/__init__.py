@@ -463,7 +463,7 @@ def main():
     parser.add_argument("--once", action="store_true", help="Run once and exit (don't continue watching feeds)")
     parser.add_argument("--interval", type=int, default=None, help="Check interval in seconds (overrides config file)")
     parser.add_argument("--podcast2md", default=None, help="Path to podcast2md executable")
-    parser.add_argument("--model", default=None, choices=["tiny", "base", "small", "medium", "large"], help="Whisper model to use")
+    parser.add_argument("--model", default=None, choices=["tiny", "tiny.en", "base", "base.en", "small", "small.en", "medium", "medium.en", "large"], help="Whisper model to use")
     parser.add_argument("--skip-formatting", action="store_true", help="Skip applying text formatting")
     parser.add_argument("--skip-links", action="store_true", help="Skip creating wiki links")
     parser.add_argument("--skip-refs", action="store_true", help="Skip adding references")
