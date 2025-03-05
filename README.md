@@ -32,13 +32,13 @@ Podcast OPML Watcher is designed to work alongside [podcast2md](https://github.c
 No installation required! Simply use `uvx` to run the tool directly:
 
 ```bash
-alias podcast-opml-watcher="uvx --with git+https://github.com/reuteras/podcast_opml_watcher podcast-opml-watcher"
+alias podcast-opml-watcher="uvx --with git+https://github.com/reuteras/podcast-opml-watcher podcast-opml-watcher"
 ```
 
 Or install the package using uv:
 
 ```bash
-uv pip install git+https://github.com/reuteras/podcast_opml_watcher
+uv pip install git+https://github.com/reuteras/podcast-opml-watcher
 ```
 
 ## Usage
