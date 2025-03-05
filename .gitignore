@@ -2,8 +2,12 @@
 __pycache__/
 *.py[oc]
 build/
+config.json
 dist/
-podcast.opml
+Podcasts
+podcasts.opml
+podcast_watcher.log
+podcast_watcher_state.json
 wheels/
 *.egg-info
 
