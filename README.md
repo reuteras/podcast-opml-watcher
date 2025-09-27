@@ -11,7 +11,7 @@ Podcast OPML Watcher is designed to work alongside [podcast2md](https://github.c
 - **OPML Import**: Process standard OPML subscription files exported from podcast apps
 - **Feed Monitoring**: Continuously watch feeds for new episodes
 - **Automated Transcription**: Leverage podcast2md for high-quality transcriptions
-- **Structured Organization**: 
+- **Structured Organization**:
   - Create a structured folder hierarchy for your podcast transcripts
   - Root "Podcasts" folder with subfolders for each podcast
   - Store images in dedicated "images" subfolders

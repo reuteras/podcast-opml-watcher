@@ -18,3 +18,8 @@ podcast-opml-watcher = "podcast_opml_watcher:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.13.2",
+]

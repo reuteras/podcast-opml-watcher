@@ -19,13 +19,11 @@ import logging
 import xml.etree.ElementTree as ET
 import feedparser
 import hashlib
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import datetime
 import concurrent.futures
 import re
 import shutil
 import tempfile
-import urllib.request
 import requests
 from urllib.parse import urlparse
 
