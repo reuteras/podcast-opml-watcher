@@ -136,7 +136,7 @@ podcast-opml-watcher podcasts.opml --config my_config.json
 
 The tool creates the following directory structure:
 
-```
+```bash
 Podcasts/
 ├── Podcast_Name_1/
 │   ├── images/
