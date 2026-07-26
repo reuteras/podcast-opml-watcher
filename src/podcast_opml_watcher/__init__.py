@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 podcast_opml_watcher.py
 
@@ -9,23 +8,24 @@ A companion tool for podcast2md that:
 4. Organizes transcripts in a structured folder hierarchy
 """
 
-import os
-import sys
-import json
-import time
 import argparse
-import subprocess
-import logging
-import xml.etree.ElementTree as ET
-import feedparser
-import hashlib
-from datetime import datetime
 import concurrent.futures
+import hashlib
+import json
+import logging
+import os
 import re
 import shutil
+import subprocess
+import sys
 import tempfile
-import requests
+import time
+import xml.etree.ElementTree as ET
+from datetime import UTC, datetime
 from urllib.parse import urlparse
+
+import feedparser
+import requests
 
 # Set up logging
 logging.basicConfig(
@@ -137,8 +137,8 @@ def get_feed_episodes(feed_url):
         logger.info(f"Found {len(parsed_feed.entries)} episodes in feed: {feed_url}")
         return parsed_feed.entries, parsed_feed.feed
 
-    except Exception as e:
-        logger.error(f"Error fetching feed {feed_url}: {str(e)}")
+    except Exception as e:  # noqa: BLE001 - keep watcher alive despite feed-specific failures
+        logger.error(f"Error fetching feed {feed_url}: {e!s}")
         return [], {}
 
 
@@ -206,10 +206,10 @@ def get_episode_date(episode):
     for date_field in ["published_parsed", "updated_parsed", "created_parsed"]:
         if hasattr(episode, date_field) and getattr(episode, date_field):
             time_struct = getattr(episode, date_field)
-            return datetime(*time_struct[:6])
+            return datetime(*time_struct[:6], tzinfo=UTC)
 
     # If no date is found, use current time
-    return datetime.now()
+    return datetime.now(UTC)
 
 
 def download_episode(episode, temp_dir):
@@ -249,14 +249,13 @@ def download_episode(episode, temp_dir):
         with requests.get(audio_url, stream=True) as response:
             response.raise_for_status()
             with open(temp_file_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                f.writelines(response.iter_content(chunk_size=8192))
 
         logger.info(f"Successfully downloaded episode to {temp_file_path}")
         return temp_file_path
 
-    except Exception as e:
-        logger.error(f"Error downloading episode {episode.title}: {str(e)}")
+    except Exception as e:  # noqa: BLE001 - keep watcher alive despite episode-specific failures
+        logger.error(f"Error downloading episode {episode.title}: {e!s}")
         return None
 
 
@@ -310,7 +309,7 @@ def transcribe_episode(
         logger.debug(f"Running command: {' '.join(cmd)}")
 
         # Run podcast2md
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
         if result.returncode != 0:
             logger.error(f"Error transcribing episode: {result.stderr}")
@@ -348,8 +347,8 @@ def transcribe_episode(
 
         return output_file
 
-    except Exception as e:
-        logger.error(f"Error during transcription process: {str(e)}")
+    except Exception as e:  # noqa: BLE001 - keep watcher alive despite episode-specific failures
+        logger.error(f"Error during transcription process: {e!s}")
         return None
 
 
@@ -411,7 +410,7 @@ def process_episode(feed_info, episode, config, temp_dir, state):
                 "title": episode_title,
                 "date": episode_date.isoformat(),
                 "output_file": md_file,
-                "processed_at": datetime.now().isoformat(),
+                "processed_at": datetime.now(UTC).isoformat(),
                 "episode_url": episode_url,
             }
 
@@ -419,9 +418,9 @@ def process_episode(feed_info, episode, config, temp_dir, state):
             logger.info(f"Successfully processed episode: {episode_title}")
             return True
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - retry loop must catch any failure to retry
             logger.error(
-                f"Error processing episode (attempt {attempt + 1}/{config['max_retry_attempts']}): {str(e)}"
+                f"Error processing episode (attempt {attempt + 1}/{config['max_retry_attempts']}): {e!s}"
             )
 
             if attempt < config["max_retry_attempts"] - 1:
@@ -485,8 +484,8 @@ def process_feed(feed_info, state, config, initial_limit=None):
                 try:
                     if future.result():
                         processed_count += 1
-                except Exception as e:
-                    logger.error(f"Unexpected error processing episode: {str(e)}")
+                except Exception as e:  # noqa: BLE001 - surface any worker failure without killing the pool
+                    logger.error(f"Unexpected error processing episode: {e!s}")
 
     logger.info(
         f"Processed {processed_count} new episodes from feed: {feed_info['title']}"
@@ -611,8 +610,8 @@ def main():
         if not feeds:
             logger.error("No podcast feeds found in the OPML file")
             sys.exit(1)
-    except Exception as e:
-        logger.error(f"Error parsing OPML file: {str(e)}")
+    except Exception as e:  # noqa: BLE001 - report any parse failure and exit cleanly
+        logger.error(f"Error parsing OPML file: {e!s}")
         sys.exit(1)
 
     # Process feeds and update state
@@ -624,7 +623,7 @@ def main():
             total_processed += processed
 
             # Save state after each feed to avoid losing progress
-            state["last_check"] = datetime.now().isoformat()
+            state["last_check"] = datetime.now(UTC).isoformat()
             save_state(state, config["state_file"])
 
         logger.info(
@@ -652,7 +651,7 @@ def main():
                 new_total += processed
 
                 # Save state after each feed
-                state["last_check"] = datetime.now().isoformat()
+                state["last_check"] = datetime.now(UTC).isoformat()
                 save_state(state, config["state_file"])
 
             logger.info(f"Completed check, {new_total} new episodes transcribed")
@@ -660,15 +659,15 @@ def main():
     except KeyboardInterrupt:
         logger.info("Process interrupted by user")
 
-    except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
+    except Exception as e:  # noqa: BLE001 - persist state before exiting on any unhandled error
+        logger.error(f"Unexpected error: {e!s}")
         # Final state save on error
-        state["last_check"] = datetime.now().isoformat()
+        state["last_check"] = datetime.now(UTC).isoformat()
         save_state(state, config["state_file"])
         sys.exit(1)
 
     # Final state save on clean exit
-    state["last_check"] = datetime.now().isoformat()
+    state["last_check"] = datetime.now(UTC).isoformat()
     save_state(state, config["state_file"])
 
 
