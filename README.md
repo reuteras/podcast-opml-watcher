@@ -43,67 +43,30 @@ uv pip install git+https://github.com/reuteras/podcast-opml-watcher
 
 ## Usage
 
-### Basic Usage
-
 Watch an OPML file for new podcast episodes:
 
 ```bash
 podcast-opml-watcher podcasts.opml
 ```
 
-### Initial Backfill
+All other behavior is controlled by flags (each overrides the config file for that run):
 
-Transcribe a specific number of existing episodes when first processing an OPML file:
+| Flag | Default | Description |
+|---|---|---|
+| `--config PATH` | `podcast_watcher_config.json` | Path to configuration file |
+| `--initial N \| all` | (none) | Transcribe N most recent episodes per feed, or all, on first run |
+| `--once` | off | Process feeds once and exit, instead of watching continuously |
+| `--output-dir DIR` | from config | Root directory for output |
+| `--interval SECONDS` | from config | How often to check feeds |
+| `--model NAME` | from config | Whisper model: `tiny`, `tiny.en`, `base`, `base.en`, `small`, `small.en`, `medium`, `medium.en`, `large` |
+| `--skip-formatting` | off | Disable text formatting |
+| `--skip-links` | off | Disable wiki links |
+| `--skip-refs` | off | Disable references |
+| `--state-file PATH` | from config | Path to state file |
+| `--podcast2md PATH` | from config | Path to the podcast2md executable |
+| `--debug` | off | Enable debug logging |
 
-```bash
-podcast-opml-watcher podcasts.opml --initial 2  # Process 2 most recent episodes per feed
-podcast-opml-watcher podcasts.opml --initial all  # Process all existing episodes
-```
-
-### Run Once
-
-Process feeds once without continuous monitoring:
-
-```bash
-podcast-opml-watcher podcasts.opml --once
-```
-
-### Output Directory
-
-Specify a custom output directory:
-
-```bash
-podcast-opml-watcher podcasts.opml --output-dir "/path/to/Podcasts"
-```
-
-### Model Selection
-
-Choose the Whisper model size for transcription:
-
-```bash
-podcast-opml-watcher podcasts.opml --model tiny    # Fastest, least accurate
-podcast-opml-watcher podcasts.opml --model base    # Good balance (default)
-podcast-opml-watcher podcasts.opml --model medium  # Better accuracy
-podcast-opml-watcher podcasts.opml --model large   # Best accuracy, slowest
-```
-
-### Formatting Options
-
-Control formatting of the transcripts:
-
-```bash
-podcast-opml-watcher podcasts.opml --skip-formatting  # Disable text formatting
-podcast-opml-watcher podcasts.opml --skip-links       # Disable wiki links
-podcast-opml-watcher podcasts.opml --skip-refs        # Disable references
-```
-
-### Check Interval
-
-Set how often to check feeds for new episodes:
-
-```bash
-podcast-opml-watcher podcasts.opml --interval 7200  # Check every 2 hours (in seconds)
-```
+Example: `podcast-opml-watcher podcasts.opml --once --model medium --interval 7200`
 
 ## Configuration File
 
@@ -157,7 +120,10 @@ The tool maintains a state file (`podcast_watcher_state.json` by default) to tra
 
 ## Integration with Obsidian
 
-For Obsidian users, the tool works seamlessly with podcast2md's Obsidian integration features:
+For Obsidian users, set `vault_path` in the config file to your vault's path. The watcher passes it through to podcast2md as `--vault`, so transcripts are written directly into your vault using podcast2md's Obsidian integration (wiki links, references, etc.):
 
-```bash
-podcast-opml-watcher podcasts.
+```json
+{
+  "vault_path": "/path/to/your/Obsidian/Vault"
+}
+```
